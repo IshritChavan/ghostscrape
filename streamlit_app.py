@@ -5,14 +5,39 @@ from bs4 import BeautifulSoup
 import streamlit as st
 import openai
 
+# ── PAYWALL ──────────────────────────────────────────────────────────
+# Stripe will redirect paid users to ?plan=PRO  ─ you set this URL in
+# the Payment-Link dashboard.  Everyone else sees the paywall screen.
+query_params = st.experimental_get_query_params()
+plan = query_params.get("plan", [""])[0]          # ?plan=PRO
+
+if plan != "PRO":
+    st.set_page_config(page_title="GhostScrape – Subscribe", layout="centered")
+    st.title("👻 GhostScrape Pro")
+    st.subheader("Unlimited AI rewrites for just **$7 / month**")
+    st.markdown(
+        """
+        - No character limits  
+        - Works on blogs, news, product pages & PDFs  
+        - Cancel any time in one click  
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "[👉 Subscribe & unlock now](https://buy.stripe.com/test_00w6oJ3Eed2V8Jh2hn3Ru00)",
+        unsafe_allow_html=True,
+    )
+    st.stop()
+# ─────────────────────────────────────────────────────────────────────
+
 # ---------- CONFIG ----------
 openai.api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
     st.error("OPENAI_API_KEY is not set. Add it in Settings → Secrets.")
     st.stop()
 
-MAX_WORDS = 1200            # trim very long pages
-MODEL     = "gpt-3.5-turbo"
+MAX_WORDS = 1200
+MODEL      = "gpt-3.5-turbo"
 
 # ---------- SCRAPER ----------
 def extract_text(url: str) -> str:
@@ -30,7 +55,7 @@ def extract_text(url: str) -> str:
 
 # ---------- UI ----------
 st.set_page_config(page_title="GhostScrape", layout="centered")
-st.title("👻 GhostScrape")
+st.title("👻 GhostScrape Pro")
 st.caption("Scrape any public URL and rewrite it instantly with AI.")
 
 url = st.text_input("Paste a URL (blog, news, product page, etc.)")
@@ -69,4 +94,4 @@ if st.button("Rewrite It!") and url:
     st.download_button("Download .txt", data=rewritten, file_name="ghostscrape.txt")
 
 st.markdown("---")
-st.caption("Need longer rewrites or batch mode? Email **ghostscrape@pm.me**")
+st.caption("Questions or need bulk credits? Email **ghostscrape@pm.me**")
